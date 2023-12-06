@@ -18,27 +18,45 @@ absolute_file_path = os.path.join(os.path.dirname(current_script_path), inputfil
 def parse_property_values():
     input_string = get_data(absolute_file_path)
     properties = input_string.split('\n\n')
-    result = {}
-
-    # this is wrong lol, uh oh graph problem bruh im ded
+    seeds = []
+    mappings_table = {}
 
     for index, prop in enumerate(properties):
         sbs = prop.split(":")
         key = sbs[0]
         # 0 is seeds
         if index == 0:
-            result[key] = [int(e) for e in sbs[1].split()]
+            seeds = [int(e) for e in sbs[1].split()]
         else:
             ans = []
             for range in sbs[1].split("\n"):
-                sub = []
-                for num in range.split():
-                    sub.append(int(num))
-                ans.append(sub)
-            result[key] = ans
+                if range: #discard empty
+                    sub = []
+                    for num in range.split(" "):
+                        sub.append(int(num))
+                    ans.append(sub)
 
+            mappings_table[key] = ans
 
-    return result
+    shortest = 2**32
+
+    for seed in seeds:
+        current = seed
+        print(f"seed: {seed}")
+        for mapping_name, mapping in mappings_table.items():
+            for lookup in mapping:
+                s_start = lookup[0]
+                range_length = lookup[2]
+                ds_start = lookup[1]
+                if current >= ds_start and (current < range_length + ds_start):
+                    print(f"in bounds of the closest mapping {mapping_name} (starting range at) {s_start}  moving from {current} to {current - ds_start + s_start}")
+                    current = current - ds_start + s_start # move to new mapping continue to next lookup
+                    break
+        print(f"final mapped position: {current}")
+        shortest = min(current, shortest)
+    return shortest
 
 result = parse_property_values()
 print(result)
+
+
